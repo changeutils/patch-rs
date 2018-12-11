@@ -1,0 +1,10 @@
+[package]
+name = "patch-rs"
+version = "0.1.0"
+authors = ["hedgar2017 <hedgar2017@gmail.com>"]
+
+[dependencies]
+clap = "2.32.0"
+error-chain = "0.12.0"
+pest = "2.0.2"
+pest_derive = "2.0.1"
