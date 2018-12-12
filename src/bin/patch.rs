@@ -47,7 +47,7 @@ fn main() -> PatchResult<()> {
     let text = read_to_vec(file)?;
     let patch = fs::read_to_string(patch)?;
 
-    let parser = PatchParser::new(&text, &patch);
+    let parser = PatchParser::new(text, patch);
     for s in parser.process()? {
         println!("{}", s);
     }

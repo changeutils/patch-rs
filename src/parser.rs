@@ -10,9 +10,9 @@ use super::error::{PatchErrorKind, PatchResult};
 
 #[derive(Parser)]
 #[grammar = "../peg/patch.peg"]
-pub struct PatchParser<'a> {
-    text: &'a [String],
-    patch: &'a str,
+pub struct PatchParser {
+    text: Vec<String>,
+    patch: String,
 }
 
 #[derive(Default)]
@@ -34,13 +34,13 @@ impl fmt::Display for ContextHeader {
     }
 }
 
-impl<'a> PatchParser<'a> {
-    pub fn new(text: &'a [String], patch: &'a str) -> Self {
+impl PatchParser {
+    pub fn new(text: Vec<String>, patch: String) -> Self {
         Self { text, patch }
     }
 
     pub fn process(&self) -> PatchResult<Vec<String>> {
-        let patch = Self::parse(Rule::patch, self.patch)?
+        let patch = Self::parse(Rule::patch, &self.patch)?
             .next()
             .ok_or(PatchErrorKind::NotFound("patch"))?;
 
