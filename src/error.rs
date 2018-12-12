@@ -2,7 +2,7 @@
 //! The error chain.
 //!
 
-use std::io;
+use std::{io, num};
 
 use parser::Rule;
 
@@ -13,13 +13,26 @@ error_chain! {
 
     foreign_links {
         Reading(io::Error);
-        Parsing(pest::error::Error<Rule>);
+        ParsingPatch(pest::error::Error<Rule>);
+        ParsingContext(num::ParseIntError);
     }
 
     errors {
-        NotFound(t: &'static str) {
+        NotFound(desc: &'static str) {
             description("Element is not found")
-            display("Missing an element: {}", t)
+            display("Missing an element: {}", desc)
+        }
+        MalformedPatch(desc: &'static str) {
+            description("Malformed patch")
+            display("Elements are found in invalid order: {}", desc)
+        }
+        AbruptInput(line: usize) {
+            description("Abrupt input file")
+            display("Line #{} not found", line)
+        }
+        PatchInputMismatch(line: usize) {
+            description("Patch does not match the input file")
+            display("Invalid line #{}", line)
         }
     }
 }

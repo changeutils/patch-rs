@@ -9,33 +9,35 @@ path_timestamp_delimiter = { "\t" }
 
 // Values
 path = { (!"\t" ~ ANY)+ }
-timestamp = { line }
-number = { NUMBER+ }
-file1_l = { number }
-file1_s = { number }
-file2_l = { number }
-file2_s = { number }
+file1_l = { NUMBER+ }
+file1_s = { NUMBER+ }
+file2_l = { NUMBER+ }
+file2_s = { NUMBER+ }
 
 // Lines
-line = { (!NEWLINE ~ ANY)* ~ NEWLINE }
-line_context = { context_line_start ~ line }
-line_deleted = { deleted_line_start ~ line }
-line_inserted = { inserted_line_start ~ line }
+line = { (!NEWLINE ~ ANY)* }
+timestamp = { line }
+line_context = { line }
+line_deleted = { line }
+line_inserted = { line }
 
 // Headers
-file1_header = { file1_header_start ~ SPACE_SEPARATOR ~ path ~ path_timestamp_delimiter ~ timestamp }
-file2_header = { file2_header_start ~ SPACE_SEPARATOR ~ path ~ path_timestamp_delimiter ~ timestamp }
+file1_header = { file1_header_start ~ SPACE_SEPARATOR ~ path ~ path_timestamp_delimiter ~ timestamp ~ NEWLINE }
+file2_header = { file2_header_start ~ SPACE_SEPARATOR ~ path ~ path_timestamp_delimiter ~ timestamp ~ NEWLINE }
 context_header = {
     context_header_delimiter ~ SPACE_SEPARATOR ~
     "-" ~ file1_l ~ "," ~ file1_s ~ SPACE_SEPARATOR ~
     "+" ~ file2_l ~ "," ~ file2_s ~ SPACE_SEPARATOR ~
-    context_header_delimiter ~ SPACE_SEPARATOR? ~ line
+    context_header_delimiter ~ SPACE_SEPARATOR? ~ line ~ NEWLINE
 }
 
 // Sections
 context = {
-    context_header ~
-    (line_context | line_deleted | line_inserted)+
+    context_header ~ (
+        (context_line_start ~ line_context ~ NEWLINE) |
+        (deleted_line_start ~ line_deleted ~ NEWLINE) |
+        (inserted_line_start ~ line_inserted ~ NEWLINE)
+    )+
 }
 patch = {
     SOI ~

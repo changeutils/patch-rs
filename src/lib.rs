@@ -12,6 +12,6 @@ extern crate pest;
 extern crate pest_derive;
 
 pub use {
+    error::{PatchError, PatchResult},
     parser::PatchParser,
-    error::{PatchResult, PatchError},
 };

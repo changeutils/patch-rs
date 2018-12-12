@@ -2,8 +2,8 @@
 //! The GNU patch Rust binary entry point.
 //!
 
-extern crate patch_rs;
 extern crate clap;
+extern crate patch_rs;
 
 use std::{
     fs,
@@ -44,13 +44,13 @@ fn main() -> PatchResult<()> {
     let file = args.value_of("file").unwrap();
     let patch = args.value_of("patch").unwrap();
 
-    println!("patching {}", file);
-
     let text = read_to_vec(file)?;
     let patch = fs::read_to_string(patch)?;
 
     let parser = PatchParser::new(&text, &patch);
-    let _ = parser.process(&|s| println!("{}", s))?;
+    for s in parser.process()? {
+        println!("{}", s);
+    }
 
     Ok(())
 }
