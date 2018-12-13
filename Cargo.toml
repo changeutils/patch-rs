@@ -1,9 +1,9 @@
 [package]
 name = "patch-rs"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["hedgar2017 <hedgar2017@gmail.com>"]
 license = "MIT"
-description = "Rust diff implementation"
+description = "Rust patch implementation"
 
 [dependencies]
 clap = "2.32.0"
