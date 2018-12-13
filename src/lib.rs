@@ -2,16 +2,22 @@
 //! The GNU patch Rust library.
 //!
 
+
+#[macro_use] extern crate pest_derive;
+#[macro_use] extern crate failure_derive;
+extern crate failure;
+extern crate pest;
+
+
 mod error;
 mod parser;
 
-#[macro_use]
-extern crate error_chain;
-extern crate pest;
-#[macro_use]
-extern crate pest_derive;
+
 
 pub use {
-    error::{PatchError, PatchResult},
+    std::result,
+    error::Error as PatchError,
     parser::PatchParser,
 };
+
+pub type PatchResult<T> = result::Result<T, PatchError>;

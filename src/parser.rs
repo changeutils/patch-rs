@@ -6,7 +6,10 @@ use std::fmt;
 
 use pest::{iterators::Pair, Parser};
 
-use super::error::{PatchErrorKind, PatchResult};
+use {
+    error::Error,
+    PatchResult
+};
 
 #[derive(Parser)]
 #[grammar = "../peg/patch.peg"]
@@ -42,7 +45,7 @@ impl PatchParser {
     pub fn process(&self) -> PatchResult<Vec<String>> {
         let patch = Self::parse(Rule::patch, &self.patch)?
             .next()
-            .ok_or(PatchErrorKind::NotFound("patch"))?;
+            .ok_or(Error::NotFound("patch"))?;
 
         let mut file2_text = Vec::new();
         let mut file1_ptr: usize = 0;
@@ -53,11 +56,11 @@ impl PatchParser {
                     let mut context = patch_element.into_inner();
                     let context_header = context
                         .next()
-                        .ok_or(PatchErrorKind::NotFound("context_header"))?;
+                        .ok_or(Error::NotFound("context_header"))?;
                     let context_header = if let Rule::context_header = context_header.as_rule() {
                         Self::get_context_header(context_header)?
                     } else {
-                        return Err(PatchErrorKind::MalformedPatch(
+                        return Err(Error::MalformedPatch(
                             "Context header is not at the start of a context",
                         )
                         .into());
@@ -66,7 +69,7 @@ impl PatchParser {
                         file2_text.push(
                             self.text
                                 .get(i)
-                                .ok_or(PatchErrorKind::AbruptInput(i))?
+                                .ok_or(Error::AbruptInput(i))?
                                 .to_owned(),
                         );
                     }
@@ -77,10 +80,10 @@ impl PatchParser {
                                 if self
                                     .text
                                     .get(file1_ptr)
-                                    .ok_or(PatchErrorKind::AbruptInput(file1_ptr))?
+                                    .ok_or(Error::AbruptInput(file1_ptr))?
                                     != line.as_span().as_str()
                                 {
-                                    return Err(PatchErrorKind::PatchInputMismatch(file1_ptr).into());
+                                    return Err(Error::PatchInputMismatch(file1_ptr).into());
                                 }
                                 file2_text.push(line.as_span().as_str().to_owned());
                                 file1_ptr += 1;
@@ -89,10 +92,10 @@ impl PatchParser {
                                 if self
                                     .text
                                     .get(file1_ptr)
-                                    .ok_or(PatchErrorKind::AbruptInput(file1_ptr))?
+                                    .ok_or(Error::AbruptInput(file1_ptr))?
                                     != line.as_span().as_str()
                                 {
-                                    return Err(PatchErrorKind::PatchInputMismatch(file1_ptr).into());
+                                    return Err(Error::PatchInputMismatch(file1_ptr).into());
                                 }
                                 file1_ptr += 1;
                             }
@@ -111,7 +114,7 @@ impl PatchParser {
             file2_text.push(
                 self.text
                     .get(i)
-                    .ok_or(PatchErrorKind::AbruptInput(i))?
+                    .ok_or(Error::AbruptInput(i))?
                     .to_owned(),
             );
         }

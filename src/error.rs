@@ -6,33 +6,38 @@ use std::{io, num};
 
 use parser::Rule;
 
-error_chain! {
-    types {
-        PatchError, PatchErrorKind, PatchResultExt, PatchResult;
-    }
+#[derive(Debug, Fail)]
+pub enum Error {
+    #[fail(display = "Error reading: {}", _0)]
+    Reading(io::Error),
+    #[fail(display = "Error parsing patch: {}", _0)]
+    ParsingPatch(pest::error::Error<Rule>),
+    #[fail(display = "Error parsing context: {}", _0)]
+    ParsingContext(num::ParseIntError),
+    #[fail(display = "Missing an element: {}", _0)]
+    NotFound(&'static str),
+    #[fail(display = "Elements are found in invalid order: {}", _0)]
+    MalformedPatch(&'static str),
+    #[fail(display = "Line #{} not found", _0)]
+    AbruptInput(usize),
+    #[fail(display = "Invalid line #{}", _0)]
+    PatchInputMismatch(usize),
+}
 
-    foreign_links {
-        Reading(io::Error);
-        ParsingPatch(pest::error::Error<Rule>);
-        ParsingContext(num::ParseIntError);
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Error {
+        Error::Reading(err)
     }
+}
 
-    errors {
-        NotFound(desc: &'static str) {
-            description("Element is not found")
-            display("Missing an element: {}", desc)
-        }
-        MalformedPatch(desc: &'static str) {
-            description("Malformed patch")
-            display("Elements are found in invalid order: {}", desc)
-        }
-        AbruptInput(line: usize) {
-            description("Abrupt input file")
-            display("Line #{} not found", line)
-        }
-        PatchInputMismatch(line: usize) {
-            description("Patch does not match the input file")
-            display("Invalid line #{}", line)
-        }
+impl From<pest::error::Error<Rule>> for Error {
+    fn from(err: pest::error::Error<Rule>) -> Error {
+        Error::ParsingPatch(err)
+    }
+}
+
+impl From<num::ParseIntError> for Error {
+    fn from(err: num::ParseIntError) -> Error {
+        Error::ParsingContext(err)
     }
 }
