@@ -22,20 +22,20 @@ pub struct Patch {
 
 pub type PatchResult<T> = Result<T, Error>;
 
-struct Context {
+pub struct Context {
     pub header: ContextHeader,
     pub data: Vec<PatchLine>,
 }
 
 #[derive(Default)]
-struct ContextHeader {
+pub struct ContextHeader {
     pub file1_l: usize,
     pub file1_s: usize,
     pub file2_l: usize,
     pub file2_s: usize,
 }
 
-enum PatchLine {
+pub enum PatchLine {
     Context(String),
     Insert(String),
     Delete(String),
