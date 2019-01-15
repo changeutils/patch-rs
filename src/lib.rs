@@ -12,5 +12,5 @@ mod parser;
 
 pub use crate::{
     error::Error as PatchError,
-    parser::{PatchParser, PatchResult},
+    parser::{PatchProcessor, PatchResult},
 };

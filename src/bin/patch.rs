@@ -10,7 +10,7 @@ use std::{
     io::{self, BufRead},
 };
 
-use patch_rs::{PatchParser, PatchResult};
+use patch_rs::{PatchProcessor, PatchResult};
 
 fn read_to_vec(path: &str) -> io::Result<Vec<String>> {
     let file = fs::File::open(path)?;
@@ -47,7 +47,7 @@ fn main() -> PatchResult<()> {
     let text = read_to_vec(file)?;
     let patch = fs::read_to_string(patch)?;
 
-    let parser = PatchParser::converted(text, &patch)?;
+    let parser = PatchProcessor::converted(text, &patch)?;
     for s in parser.process()? {
         println!("{}", s);
     }

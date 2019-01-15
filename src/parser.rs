@@ -8,12 +8,17 @@ use crate::error::Error;
 
 #[derive(Parser)]
 #[grammar = "../peg/patch.peg"]
-pub struct PatchParser {
+pub struct PatchProcessor {
     text: Vec<String>,
     patch: Patch,
 }
 
-pub struct Patch(Vec<Context>);
+#[allow(dead_code)]
+pub struct Patch {
+    pub input: String,
+    pub output: String,
+    pub contexts: Vec<Context>,
+}
 
 pub type PatchResult<T> = Result<T, Error>;
 
@@ -36,7 +41,7 @@ enum PatchLine {
     Delete(String),
 }
 
-impl PatchParser {
+impl PatchProcessor {
     pub fn converted(text: Vec<String>, patch: &str) -> PatchResult<Self> {
         Ok(Self {
             text,
@@ -48,7 +53,7 @@ impl PatchParser {
         let mut file2_text = Vec::new();
         let mut file1_ptr: usize = 0;
 
-        for context in &self.patch.0 {
+        for context in &self.patch.contexts {
             for i in file1_ptr..context.header.file1_l {
                 file2_text.push(
                     self.text
@@ -107,42 +112,71 @@ impl PatchParser {
             .next()
             .ok_or(Error::NotFound("patch"))?;
 
-        let mut patch = Patch(Vec::new());
-        for patch_element in peg_patch.into_inner() {
-            if let Rule::context = patch_element.as_rule() {
-                let mut peg_context = patch_element.into_inner();
-                let context_header = peg_context
-                    .next()
-                    .ok_or(Error::NotFound("context_header"))?;
-                let context_header = if let Rule::context_header = context_header.as_rule() {
-                    Self::get_context_header(context_header)?
-                } else {
-                    return Err(Error::MalformedPatch(
-                        "Context header is not at the start of a context",
-                    ));
-                };
+        let mut contexts = Vec::new();
+        let mut input = None;
+        let mut output = None;
 
-                let mut context = Context {
-                    header: context_header,
-                    data: Vec::new(),
-                };
-                for line in peg_context {
-                    match line.as_rule() {
-                        Rule::line_context => context
-                            .data
-                            .push(PatchLine::Context(line.as_span().as_str().to_owned())),
-                        Rule::line_deleted => context
-                            .data
-                            .push(PatchLine::Delete(line.as_span().as_str().to_owned())),
-                        Rule::line_inserted => context
-                            .data
-                            .push(PatchLine::Insert(line.as_span().as_str().to_owned())),
-                        _ => {}
+        for patch_element in peg_patch.into_inner() {
+            match patch_element.as_rule() {
+                Rule::file1_header => {
+                    for header_element in patch_element.into_inner() {
+                        if let Rule::path = header_element.as_rule() {
+                            input = Some(header_element.as_span().as_str().to_owned());
+                        }
                     }
                 }
-                patch.0.push(context);
+                Rule::file2_header => {
+                    for header_element in patch_element.into_inner() {
+                        if let Rule::path = header_element.as_rule() {
+                            output = Some(header_element.as_span().as_str().to_owned());
+                        }
+                    }
+                }
+                Rule::context => {
+                    let mut peg_context = patch_element.into_inner();
+                    let context_header = peg_context
+                        .next()
+                        .ok_or(Error::NotFound("context_header"))?;
+                    let context_header = if let Rule::context_header = context_header.as_rule() {
+                        Self::get_context_header(context_header)?
+                    } else {
+                        return Err(Error::MalformedPatch(
+                            "Context header is not at the start of a context",
+                        ));
+                    };
+
+                    let mut context = Context {
+                        header: context_header,
+                        data: Vec::new(),
+                    };
+                    for line in peg_context {
+                        match line.as_rule() {
+                            Rule::line_context => context
+                                .data
+                                .push(PatchLine::Context(line.as_span().as_str().to_owned())),
+                            Rule::line_deleted => context
+                                .data
+                                .push(PatchLine::Delete(line.as_span().as_str().to_owned())),
+                            Rule::line_inserted => context
+                                .data
+                                .push(PatchLine::Insert(line.as_span().as_str().to_owned())),
+                            _ => {}
+                        }
+                    }
+                    contexts.push(context);
+                }
+                _ => {}
             }
         }
+
+        let input = input.ok_or_else(|| Error::NotFound("path (input)"))?;
+        let output = output.ok_or_else(|| Error::NotFound("path (output)"))?;
+
+        let patch = Patch {
+            input,
+            output,
+            contexts,
+        };
 
         Ok(patch)
     }
