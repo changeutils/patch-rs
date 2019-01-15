@@ -1,13 +1,14 @@
 [package]
 name = "patch-rs"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["hedgar2017 <hedgar2017@gmail.com>"]
 license = "MIT"
 description = "Rust patch implementation"
+edition = "2018"
 
 [dependencies]
-clap = "2.32.0"
-pest = "2.0.2"
-pest_derive = "2.0.1"
+clap = "2.32"
+pest = "2.1"
+pest_derive = "2.1"
 failure = "0.1"
 failure_derive = "0.1"

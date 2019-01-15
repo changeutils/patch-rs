@@ -4,7 +4,7 @@
 
 use std::{io, num};
 
-use parser::Rule;
+use crate::parser::Rule;
 
 #[derive(Debug, Fail)]
 pub enum Error {
