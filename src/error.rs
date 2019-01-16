@@ -4,6 +4,8 @@
 
 use std::{io, num};
 
+use failure::Fail;
+
 use crate::parser::Rule;
 
 #[derive(Debug, Fail)]

@@ -2,9 +2,6 @@
 //! The GNU patch Rust binary entry point.
 //!
 
-extern crate clap;
-extern crate patch_rs;
-
 use std::{
     fs,
     io::{self, BufRead},

@@ -3,6 +3,7 @@
 //!
 
 use pest::{iterators::Pair, Parser};
+use pest_derive::Parser;
 
 use crate::error::Error;
 
