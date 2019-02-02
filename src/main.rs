@@ -1,5 +1,5 @@
 //!
-//! The GNU patch Rust binary entry point.
+//! The Patch binary.
 //!
 
 use std::{
