@@ -7,7 +7,8 @@ use pest_derive::Parser;
 
 use crate::{
     error::Error,
-    data::*,
+    line::*,
+    context::*,
     PatchResult,
 };
 
@@ -16,6 +17,12 @@ use crate::{
 pub struct PatchProcessor {
     text: Vec<String>,
     patch: Patch,
+}
+
+pub struct Patch {
+    pub input: String,
+    pub output: String,
+    pub contexts: Vec<Context>,
 }
 
 impl PatchProcessor {
@@ -42,7 +49,7 @@ impl PatchProcessor {
             file1_ptr = context.header.file1_l-1;
             for line in &context.data {
                 match line {
-                    PatchLine::Context(ref data) => {
+                    Line::Context(ref data) => {
                         if self
                             .text
                             .get(file1_ptr)
@@ -54,7 +61,7 @@ impl PatchProcessor {
                         file2_text.push(data.to_owned());
                         file1_ptr += 1;
                     }
-                    PatchLine::Delete(ref data) => {
+                    Line::Delete(ref data) => {
                         if self
                             .text
                             .get(file1_ptr)
@@ -65,7 +72,7 @@ impl PatchProcessor {
                         }
                         file1_ptr += 1;
                     }
-                    PatchLine::Insert(ref data) => {
+                    Line::Insert(ref data) => {
                         file2_text.push(data.to_owned());
                     }
                 }
@@ -130,13 +137,13 @@ impl PatchProcessor {
                         match line.as_rule() {
                             Rule::line_context => context
                                 .data
-                                .push(PatchLine::Context(line.as_span().as_str().to_owned())),
+                                .push(Line::Context(line.as_span().as_str().to_owned())),
                             Rule::line_deleted => context
                                 .data
-                                .push(PatchLine::Delete(line.as_span().as_str().to_owned())),
+                                .push(Line::Delete(line.as_span().as_str().to_owned())),
                             Rule::line_inserted => context
                                 .data
-                                .push(PatchLine::Insert(line.as_span().as_str().to_owned())),
+                                .push(Line::Insert(line.as_span().as_str().to_owned())),
                             _ => {}
                         }
                     }

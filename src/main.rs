@@ -38,8 +38,8 @@ fn main() -> PatchResult<()> {
         )
         .get_matches();
 
-    let file = args.value_of("file").unwrap();
-    let patch = args.value_of("patch").unwrap();
+    let file = args.value_of("file").expect("Unreachable");
+    let patch = args.value_of("patch").expect("Unreachable");
 
     let text = read_to_vec(file)?;
     let patch = fs::read_to_string(patch)?;
