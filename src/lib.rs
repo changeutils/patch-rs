@@ -7,6 +7,8 @@ mod parser;
 mod line;
 mod context;
 
+mod flip;
+
 pub use crate::{
     error::Error as PatchError,
     parser::{PatchProcessor, Patch},

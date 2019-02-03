@@ -16,6 +16,10 @@ fn read_to_vec(path: &str) -> io::Result<Vec<String>> {
 }
 
 fn main() -> PatchResult<()> {
+    env_logger::Builder::from_default_env()
+        .default_format_timestamp_nanos(true)
+        .init();
+
     let args = clap::App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
