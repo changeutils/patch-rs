@@ -13,12 +13,25 @@ pub struct Context {
 }
 
 impl Context {
+    pub fn offset(&self) -> isize {
+        (self.header.file2_s as isize) - (self.header.file1_s as isize)
+    }
+
+    pub fn shift(&mut self, offset: isize) {
+        if offset > 0 {
+            self.header.file1_l -= offset as usize;
+        }
+        if offset < 0 {
+            self.header.file1_l += -offset as usize;
+        }
+    }
+
     pub fn closing_context_size(&self) -> usize {
         self.data.iter().rev().take_while(|element| if let Line::Context(_) = element {
             true
         } else {
             false
-        }).collect::<Vec<&Line>>().len()
+        }).count()
     }
 
     pub fn has_changes(&self) -> bool {
@@ -40,8 +53,8 @@ impl Context {
                     s1 += 1;
                     s2 += 1;
                 },
-                Line::Insert(_) => s1 += 1,
-                Line::Delete(_) => s2 += 1,
+                Line::Insert(_) => s2 += 1,
+                Line::Delete(_) => s1 += 1,
             }
         }
         self.header.file1_s = s1;

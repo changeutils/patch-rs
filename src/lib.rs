@@ -6,13 +6,16 @@ mod error;
 mod parser;
 mod line;
 mod context;
+mod patch;
 
 mod flip;
+mod reduce;
 
 pub use crate::{
     error::Error as PatchError,
-    parser::{PatchProcessor, Patch},
+    parser::PatchProcessor,
     line::Line,
+    patch::Patch,
     context::{Context, ContextHeader},
 };
 

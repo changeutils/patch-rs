@@ -2,6 +2,8 @@
 //! The Patch parser implementation.
 //!
 
+use std::collections::VecDeque;
+
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
 
@@ -9,6 +11,7 @@ use crate::{
     error::Error,
     line::*,
     context::*,
+    patch::*,
     PatchResult,
 };
 
@@ -17,12 +20,6 @@ use crate::{
 pub struct PatchProcessor {
     text: Vec<String>,
     patch: Patch,
-}
-
-pub struct Patch {
-    pub input: String,
-    pub output: String,
-    pub contexts: Vec<Context>,
 }
 
 impl PatchProcessor {
@@ -96,7 +93,7 @@ impl PatchProcessor {
             .next()
             .ok_or(Error::NotFound("patch"))?;
 
-        let mut contexts = Vec::new();
+        let mut contexts = VecDeque::new();
         let mut input = None;
         let mut output = None;
 
@@ -147,7 +144,7 @@ impl PatchProcessor {
                             _ => {}
                         }
                     }
-                    contexts.push(context);
+                    contexts.push_back(context);
                 }
                 _ => {}
             }
