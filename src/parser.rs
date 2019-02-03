@@ -1,45 +1,21 @@
 //!
-//! The parser implementation.
+//! The Patch parser implementation.
 //!
 
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
 
-use crate::error::Error;
+use crate::{
+    error::Error,
+    data::*,
+    PatchResult,
+};
 
 #[derive(Parser)]
 #[grammar = "../peg/patch.peg"]
 pub struct PatchProcessor {
     text: Vec<String>,
     patch: Patch,
-}
-
-#[allow(dead_code)]
-pub struct Patch {
-    pub input: String,
-    pub output: String,
-    pub contexts: Vec<Context>,
-}
-
-pub type PatchResult<T> = Result<T, Error>;
-
-pub struct Context {
-    pub header: ContextHeader,
-    pub data: Vec<PatchLine>,
-}
-
-#[derive(Default)]
-pub struct ContextHeader {
-    pub file1_l: usize,
-    pub file1_s: usize,
-    pub file2_l: usize,
-    pub file2_s: usize,
-}
-
-pub enum PatchLine {
-    Context(String),
-    Insert(String),
-    Delete(String),
 }
 
 impl PatchProcessor {
@@ -55,7 +31,7 @@ impl PatchProcessor {
         let mut file1_ptr: usize = 0;
 
         for context in &self.patch.contexts {
-            for i in file1_ptr..context.header.file1_l {
+            for i in file1_ptr..context.header.file1_l-1 {
                 file2_text.push(
                     self.text
                         .get(i)
@@ -63,7 +39,7 @@ impl PatchProcessor {
                         .to_owned(),
                 );
             }
-            file1_ptr = context.header.file1_l;
+            file1_ptr = context.header.file1_l-1;
             for line in &context.data {
                 match line {
                     PatchLine::Context(ref data) => {
@@ -193,8 +169,6 @@ impl PatchProcessor {
                 _ => {}
             }
         }
-        output.file1_l -= 1;
-        output.file2_l -= 1;
         Ok(output)
     }
 }

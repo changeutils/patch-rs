@@ -1,11 +1,15 @@
 //!
-//! The GNU patch Rust library.
+//! The Patch library.
 //!
 
 mod error;
 mod parser;
+mod data;
 
 pub use crate::{
     error::Error as PatchError,
-    parser::{PatchProcessor, PatchResult, PatchLine, Patch, Context, ContextHeader},
+    parser::PatchProcessor,
+    data::{PatchLine, Patch, Context, ContextHeader},
 };
+
+pub type PatchResult<T> = Result<T, PatchError>;

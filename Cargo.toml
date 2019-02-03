@@ -1,6 +1,6 @@
 [package]
 name = "patch-rs"
-version = "0.5.5"
+version = "0.5.6"
 authors = ["hedgar2017 <hedgar2017@gmail.com>"]
 license = "MIT"
 description = "Rust patch implementation"
