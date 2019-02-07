@@ -4,7 +4,7 @@
 
 use std::fmt;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Line {
     Context(String),
     Insert(String),
@@ -12,6 +12,14 @@ pub enum Line {
 }
 
 impl Line {
+    pub fn to_inner(&self) -> String {
+        match self {
+            Line::Context(line) => line.to_owned(),
+            Line::Insert(line) => line.to_owned(),
+            Line::Delete(line) => line.to_owned(),
+        }
+    }
+
     pub fn flip(&self) -> Self {
         match self {
             Line::Context(line) => Line::Context(line.clone()),

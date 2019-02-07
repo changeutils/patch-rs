@@ -1,5 +1,5 @@
 //!
-//! The context reducing algorithm.
+//! The context flipping algorithm.
 //!
 
 use std::collections::VecDeque;
@@ -14,17 +14,20 @@ use crate::{
 enum FlipState {
     StartContext,
     Context,
+    Buffering,
 }
 
 impl Context {
-    pub fn reduce(&self) -> VecDeque<Self> {
+    pub fn flip(&self) -> VecDeque<Self> {
         let mut results = VecDeque::new();
 
         let mut output = Self::default();
-        output.header.file1_l = self.header.file1_l;
-        output.header.file2_l = self.header.file2_l;
+        output.header.file1_l = self.header.file2_l;
+        output.header.file2_l = self.header.file1_l;
 
         let mut state = FlipState::StartContext;
+        let mut deletes = Vec::new();
+        let mut inserts = Vec::new();
 
         trace!("START");
         for line in self.data.iter() {
@@ -52,14 +55,14 @@ impl Context {
                                     output.data.pop();
                                     trace!("POP END");
                                 }
-                                output.set_s_values();
+                                output.update();
 
                                 trace!("PUSH OUTPUT");
                                 let output_next = Context {
                                     header: ContextHeader {
-                                        file1_l: output.header.file1_l + output.header.file1_s + lines - 2,
+                                        file1_l: output.header.file2_l + output.header.file2_s + lines - 2,
                                         file1_s: Default::default(),
-                                        file2_l: output.header.file2_l + output.header.file2_s + lines - 2,
+                                        file2_l: output.header.file1_l + output.header.file1_s + lines - 2,
                                         file2_s: Default::default(),
                                     },
                                     data,
@@ -69,15 +72,47 @@ impl Context {
                                     results.push_back(output);
                                 }
                                 output = output_next;
+
+                                state = FlipState::Context;
                             }
+                        },
+                        FlipState::Buffering => {
+                            trace!("Context Buffering");
+                            output.data.append(&mut deletes);
+                            output.data.append(&mut inserts);
+                            state = FlipState::Context;
+                            output.data.push(line.clone());
                         },
                     }
                 },
-                Line::Delete(_) | Line::Insert(_) => {
+                Line::Delete(_) => {
                     if let FlipState::StartContext = state {
-                        state = FlipState::Context;
+                        trace!("Delete StartContext");
+                        state = FlipState::Buffering;
                     }
-                    output.data.push(line.clone());
+                    if let FlipState::Context = state {
+                        trace!("Delete Context");
+                        state = FlipState::Buffering;
+                    }
+                    if let FlipState::Buffering = state {
+                        trace!("Delete Buffering");
+                        inserts.push(line.flip());
+                    }
+                },
+                Line::Insert(_) => {
+                    trace!("INSERT");
+                    if let FlipState::StartContext = state {
+                        trace!("Insert StartContext");
+                        state = FlipState::Buffering;
+                    }
+                    if let FlipState::Context = state {
+                        trace!("Insert Context");
+                        state = FlipState::Buffering;
+                    }
+                    if let FlipState::Buffering = state {
+                        trace!("Insert Buffering");
+                        deletes.push(line.flip());
+                    }
                 },
             }
         }
@@ -90,7 +125,7 @@ impl Context {
             }
         }
 
-        output.set_s_values();
+        output.update();
         if output.has_changes() {
             results.push_back(output);
         }
