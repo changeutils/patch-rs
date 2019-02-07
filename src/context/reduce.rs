@@ -2,7 +2,10 @@
 //! The context reducing algorithm.
 //!
 
-use std::collections::VecDeque;
+use std::{
+    cmp,
+    collections::VecDeque
+};
 
 use log::*;
 
@@ -17,7 +20,10 @@ enum FlipState {
 }
 
 impl Context {
-    pub fn reduce(&self) -> VecDeque<Self> {
+    pub fn reduce(&self, mut context_radius: usize) -> VecDeque<Self> {
+        context_radius = cmp::max(1, context_radius);
+        context_radius = cmp::min(context_radius, self.opening_context_size());
+
         let mut results = VecDeque::new();
 
         let mut output = Self::default();
@@ -33,7 +39,7 @@ impl Context {
                     match state {
                         FlipState::StartContext => {
                             trace!("Context StartContext");
-                            if output.closing_context_size() >= 1 {
+                            while output.opening_context_size() >= context_radius {
                                 output.data.pop();
                                 output.header.file1_l += 1;
                                 output.header.file2_l += 1;
@@ -45,10 +51,10 @@ impl Context {
                             trace!("Context Context");
                             output.data.push(line.clone());
                             let lines = output.closing_context_size();
-                            if lines > 2 {
+                            if lines > 2 * context_radius {
                                 let mut data = Vec::new();
                                 data.push(output.data.pop().unwrap());
-                                for _ in 2..lines {
+                                for _ in context_radius*2..lines {
                                     output.data.pop();
                                     trace!("POP END");
                                 }
@@ -83,8 +89,8 @@ impl Context {
         }
 
         let lines = output.closing_context_size();
-        if lines > 1 {
-            for _ in 1..lines {
+        if lines > context_radius {
+            for _ in context_radius..lines {
                 output.data.pop();
                 trace!("POP END");
             }

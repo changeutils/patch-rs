@@ -169,11 +169,9 @@ impl Context {
     pub fn shift(&mut self, offset: isize) {
         if offset > 0 {
             self.header.file1_l += offset as usize;
-            self.header.file2_l += offset as usize;
         }
         if offset < 0 {
             self.header.file1_l -= -offset as usize;
-            self.header.file2_l -= -offset as usize;
         }
     }
 
@@ -181,7 +179,7 @@ impl Context {
         self.data.len()
     }
 
-    pub fn impact(&self) -> isize {
+    pub fn offset(&self) -> isize {
         (self.header.file2_s as isize) - (self.header.file1_s as isize)
     }
 
