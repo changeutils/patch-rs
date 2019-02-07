@@ -9,6 +9,7 @@ use std::{
 
 use crate::context::Context;
 
+#[derive(Default)]
 pub struct Patch {
     pub input: String,
     pub output: String,
